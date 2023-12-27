@@ -1,26 +1,52 @@
-import sqlite3 as sq
+
+from dotenv import load_dotenv
+from os import getenv
+import asyncio
+import sys
+
+from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase
+from sqlalchemy import create_engine, Column, Integer, String, LargeBinary, select
+from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker
+from sqlalchemy import BigInteger, URL, create_engine, text
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 
-db = sq.connect('tg.db')
-cur = db.cursor()
+# Загрузка параметров конфигурации из файла .env
+load_dotenv()
+
+engine = create_async_engine(getenv('SQLALCHEMY_URL'), echo=True)
+
+async_session = async_sessionmaker(engine)
 
 
-async def db_start():
-	cur.execute("CREATE TABLE IF NOT EXISTS accounts("
-		"id INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"tg_id INTEGER, "
-		"cart_id TEXT)")
-	cur.execute("CREATE TABLE IF NOT EXISTS items("
-		"i_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"name TEXT, "
-		"desc TEXT, "
-		"price TEXT, "
-		"photo TEXT) ")
-	db.commit()
+class Base(AsyncAttrs, DeclarativeBase):
+    pass
 
 
-async def cmd_start_db(user_id):
-	user = cur.execute("SELECT * FROM accounts WHERE tg_id == {key}".format(key=user_id)).fetchone()
-	if not user:
-		cur.execute("INSERT  INTO accounts (tg_id) VALUES ({key})".format(key=user_id))
-		db.commit()
+class Product(Base):
+    __tablename__ = 'Products'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column()
+    description: Mapped[str] = mapped_column()
+    price: Mapped[int] = mapped_column()
+    photo: Mapped[str] = mapped_column()
+
+
+class Tools:
+    @staticmethod
+    async def add_item(name, description, price, photo):
+        async with async_session() as conn:
+            try:
+                new_item = Product(name=name, \
+                    description=description, price=price, photo=photo)
+                conn.add(new_item)
+                await conn.commit()
+            except Exception as ex:
+                print(ex)
+
+
+async def async_main():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
