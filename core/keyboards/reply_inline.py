@@ -1,5 +1,4 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.types import ReplyKeyboardMarkup
 from aiogram import types
 
 # Создаем inline-клавиатуру с кнопкой "Удалить"
@@ -36,5 +35,3 @@ class InlineKeyBoards:
             ]
         )
         return links_kb
-        
-        
