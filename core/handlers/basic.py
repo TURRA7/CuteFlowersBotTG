@@ -156,10 +156,13 @@ async def item_category(message: Message):
         await message.answer(messages[23])
     for item in items:
         text: list = [item[1], item[2], f"{str(item[3])}р."]
+        if not message.from_user.id == settings.bots.admin_id:
+            await message.answer_photo(
+                item[5], "\n".join(text))
         await message.answer_photo(
-            item[5], "\n".join(text),
-            reply_markup=InlineKeyBoards.create_keyboard_inline(
-                'Удалить', f"delete_item:{item[0]}"))
+                item[5], "\n".join(text),
+                reply_markup=InlineKeyBoards.create_keyboard_inline(
+                    'Удалить', f"delete_item:{item[0]}"))
 
 
 async def delete_item(callback_query: types.CallbackQuery, bot: Bot):
