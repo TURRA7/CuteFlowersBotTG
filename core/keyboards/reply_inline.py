@@ -1,18 +1,19 @@
+"""Модуль с инструментами по созданию Reply и Inline клавиатур."""
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types
 
-# Создаем inline-клавиатуру с кнопкой "Удалить"
 
-
-# Класс по Reply клавиатуре.
 class ReplyKeyBoards:
+    """Класс для работы с Reply клавиатурой."""
+
     def __init__(self):
+        """Метод инициализации класса."""
         pass
 
-    # Метод создаёт клавиатуру с преданым колличеством кнопопк.
     @staticmethod
-    def create_keyboard_reply(*buttons):
-        kb: list = [[types.KeyboardButton(text=button,)] for button in buttons]
+    def create_keyboard_reply(*buttons: str):
+        """Метод создаёт клавиатуру с предаными кнопопками."""
+        kb: list = [[types.KeyboardButton(text=button)] for button in buttons]
         keyboard = types.ReplyKeyboardMarkup(
                 keyboard=kb,
                 resize_keyboard=True,
@@ -20,18 +21,21 @@ class ReplyKeyBoards:
         return keyboard
 
 
-# Класс по Inline клавиатуре.
 class InlineKeyBoards:
+    """Класс для работы с Inline клавиатурой."""
+
     def __init__(self):
+        """Метод инициализации класса."""
         pass
 
     @staticmethod
-    def create_keyboard_inline(text, callbacks):
+    def create_keyboard_inline(text, callbacks: str):
+        """Метод создаёт клавиатуру с предаными кнопопками."""
         links_kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text=text, callback_data=callbacks)
-                ]
-            ]
+                    InlineKeyboardButton(text=text, callback_data=callbacks),
+                ],
+            ],
         )
         return links_kb

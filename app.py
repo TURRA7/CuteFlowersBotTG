@@ -1,3 +1,5 @@
+"""Модуль исполнительного файла."""
+
 import asyncio
 import logging
 from logging.handlers import RotatingFileHandler
@@ -11,7 +13,8 @@ from core.handlers.basic import (
     contacts_saler, admin_saler, main_menu,
     add_item, add_item_name, add_item_description,
     add_item_price, Form, add_item_photo,
-    delete_item, add_item_category
+    delete_item, add_item_category, item_catalog,
+    item_category,
 )
 from core.content.contents import emoticons
 from core.database.ADataBase import DataBaseTools
@@ -54,7 +57,11 @@ async def start():
     dp.message.register(main_menu, F.text == emoticons[10])
     dp.callback_query.register(delete_item,
                                lambda c: c.data.startswith('delete_item:'))
-
+    dp.message.register(item_catalog, F.text == emoticons[3])
+    dp.message.register(item_category, F.text.in_({emoticons[11],
+                                                   emoticons[12],
+                                                   emoticons[13],
+                                                   emoticons[14]}))
     # Регистрация хэндлеров(FSM):
     dp.message.register(add_item, F.text == emoticons[7],
                         F.from_user.id == settings.bots.admin_id)

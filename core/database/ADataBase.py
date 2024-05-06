@@ -1,3 +1,5 @@
+"""Модуль с инструментами по работе с базой данных."""
+
 import psycopg2
 import logging
 from logging.handlers import RotatingFileHandler
@@ -29,7 +31,9 @@ logger.addHandler(file_handler)
 
 class AioDataBase:
     """Базовый класс для работы с базой данных."""
+
     def __init__(self):
+        """Метод инициализации переменных."""
         self.conn = psycopg2.connect(dbname=settings.bots.dbname,
                                      user=settings.bots.user,
                                      password=settings.bots.password,
@@ -41,6 +45,7 @@ class AioDataBase:
 
 class DataBaseTools(AioDataBase):
     """Класс содержит инструменты для работы с базой данных."""
+
     def __init__(self):
         """Метод инициализации переменных."""
         super().__init__()
@@ -80,12 +85,18 @@ class DataBaseTools(AioDataBase):
         try:
             self.cursor.execute(delete_table_command)
             self.conn.commit()
-            logger.info(f"Таблица {table_name} - удалена!")
+            logger.info("Таблица %s - удалена!", table_name)
         except Exception as ex:
             logger.info("Ошибка удаления таблицы: %s", ex)
 
     def insert_item(self, table_name: str, **kwargs):
-        """Метод добавления данных в таблицу."""
+        """
+        Метод добавления данных в таблицу.
+
+        params:
+            table_name: название таблицы в виде строки.
+            kwargs: столбец таблицы=значение.
+        """
         keys = ', '.join(kwargs.keys())
         values = ', '.join('%s' for _ in kwargs)
         insert_item_command = f"""
@@ -95,14 +106,41 @@ class DataBaseTools(AioDataBase):
         try:
             self.cursor.execute(insert_item_command, list(kwargs.values()))
             self.conn.commit()
-            logger.info("Товар добавлен в таблицу", table_name)
+            logger.info("Товар добавлен в таблицу %s", table_name)
         except Exception as ex:
             logger.info("Ошибка добавления товара! %s", ex)
 
-    def update_item(self):
-        """Метод изменения данных из таблицы."""
-        pass
+    def fetch_all_items(self, cat_item: int):
+        """Метод для получения всех элементов из таблицы.
 
-    def execute_item(self):
-        """Метод выполнения запроса в БД."""
-        pass
+        params:
+            cat_item: категория товаров.
+        """
+        fetch_all_command = """
+        SELECT * FROM goods WHERE category = %s
+        """
+        try:
+            self.cursor.execute(fetch_all_command, (cat_item,))
+            rows = self.cursor.fetchall()
+            logger.info("Данные получены!")
+            return rows
+        except Exception as ex:
+            logger.info("Ошибка получения данных из таблицы: %s", ex)
+            return []
+
+    def delete_item(self, id_item: int):
+        """Метод для удаления товара из базы данных.
+
+        params:
+            id_item: id товара.
+        """
+        delete_item_command = """
+        DELETE FROM goods WHERE id = %s
+        """
+        try:
+            self.cursor.execute(delete_item_command, (id_item,))
+            self.conn.commit()
+            logger.info("Товар с id: %s удалён!", id_item)
+        except Exception as ex:
+            logger.info("Ошибка удаления данных из таблицы: %s", ex)
+            return []
