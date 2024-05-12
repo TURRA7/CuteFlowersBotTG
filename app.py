@@ -1,8 +1,13 @@
-"""Модуль исполнительного файла."""
+"""
+Модуль исполнительного файла.
+
+Данный модуль, содержит логирование.
+
+function:
+    start: Функция инициации и запуска бота.
+"""
 
 import asyncio
-import logging
-from logging.handlers import RotatingFileHandler
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
@@ -10,37 +15,21 @@ from aiogram import F
 
 from core.handlers.basic import (
     get_start, start_bot, stop_bot,
-    contacts_saler, admin_saler, main_menu,
+    contacts_menu, admin_menu, main_menu,
     add_item, add_item_name, add_item_description,
-    add_item_price, Form, add_item_photo,
+    add_item_price, add_item_photo,
     delete_item, add_item_category, item_catalog,
-    item_category,
+    item_category, buy_item, start_mailing, send_mailing,
 )
+from core.forms_state.form_bot import Form_add, Form_mailing
 from core.content.contents import emoticons
 from core.database.ADataBase import DataBaseTools
 from settings import settings
-
+from core.log_mod import Logger
 
 # Создание логгера
-logger = logging.getLogger('log_app.log')
-logger.setLevel(logging.DEBUG)
-# Создание обработчика консоли и установка уровеня отладки
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-# Создание форматтера
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# Добавить форматтер в ch
-ch.setFormatter(formatter)
-# Добавлении ротации логов
-file_handler = RotatingFileHandler('log_app.log',
-                                   maxBytes=1024 * 1024,
-                                   backupCount=5)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(formatter)
-# Добавить ch в логгер, создание ротации
-logger.addHandler(ch)
-logger.addHandler(file_handler)
+db_logger = Logger("log_app.log")
+logger = db_logger.get_logger()
 
 
 async def start():
@@ -51,8 +40,8 @@ async def start():
 
     # Регистрация хэндлеров(Общие):
     dp.message.register(get_start, Command("start"))
-    dp.message.register(contacts_saler, F.text == emoticons[5])
-    dp.message.register(admin_saler, F.text == emoticons[6],
+    dp.message.register(contacts_menu, F.text == emoticons[5])
+    dp.message.register(admin_menu, F.text == emoticons[6],
                         F.from_user.id == settings.bots.admin_id)
     dp.message.register(main_menu, F.text == emoticons[10])
     dp.callback_query.register(delete_item,
@@ -62,18 +51,27 @@ async def start():
                                                    emoticons[12],
                                                    emoticons[13],
                                                    emoticons[14]}))
-    # Регистрация хэндлеров(FSM):
+    dp.callback_query.register(buy_item,
+                               lambda c: c.data.startswith('buy_item:'))
+
+    # Регистрация хэндлеров(FSM - добавление товаров.):
     dp.message.register(add_item, F.text == emoticons[7],
                         F.from_user.id == settings.bots.admin_id)
-    dp.message.register(add_item_name, Form.name,
+    dp.message.register(add_item_name, Form_add.name,
                         F.from_user.id == settings.bots.admin_id)
-    dp.message.register(add_item_description, Form.description,
+    dp.message.register(add_item_description, Form_add.description,
                         F.from_user.id == settings.bots.admin_id)
-    dp.message.register(add_item_price, Form.price,
+    dp.message.register(add_item_price, Form_add.price,
                         F.from_user.id == settings.bots.admin_id)
-    dp.message.register(add_item_category, Form.category,
+    dp.message.register(add_item_category, Form_add.category,
                         F.from_user.id == settings.bots.admin_id)
-    dp.message.register(add_item_photo, Form.photo,
+    dp.message.register(add_item_photo, Form_add.photo,
+                        F.from_user.id == settings.bots.admin_id)
+
+    # Регистрация хэндлеров(FSM - рассылка.):
+    dp.message.register(start_mailing, F.text == emoticons[15],
+                        F.from_user.id == settings.bots.admin_id)
+    dp.message.register(send_mailing, Form_mailing.text,
                         F.from_user.id == settings.bots.admin_id)
 
     # Регистрация хэндлеров(Старт/остановка бота):

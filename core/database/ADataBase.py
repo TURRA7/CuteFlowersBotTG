@@ -1,32 +1,35 @@
-"""Модуль с инструментами по работе с базой данных."""
+"""
+Модуль с инструментами по работе с базой данных.
+
+В данном модуле, используется диалект PostgreSQL.
+Данный модуль, содержит логирование.
+
+classes:
+    AioDataBase: Родительский класс с инициализации параметров
+    подключения и работы с базой данных: conn и cursor.
+    DataBaseTools: Класс с инструментами по работе с БД.
+
+methods:
+    create_table: Создаёт заданные таблицы в базе данных(если их нет).
+    delete_table: Удаляет таблицу по переданому названию.
+    insert_item: Добавление данных в таблицу по названию таблицы
+    и самим аргументам.
+    fetch_all_items_cat: Получение данных из таблицы по
+    переданому параметру категории
+    fetch_all_items: Получение данных из конкретного столбца таблицы,
+    по названию таблицы и названию столбца.
+    delete_item: Удаление данных из таблицы по id.
+    select_item_id: Получение данных из таблицы по id.
+"""
 
 import psycopg2
-import logging
-from logging.handlers import RotatingFileHandler
 
 from settings import settings
-
+from ..log_mod import Logger
 
 # Создание логгера
-logger = logging.getLogger('log_db.log')
-logger.setLevel(logging.DEBUG)
-# Создание обработчика консоли и установка уровеня отладки
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-# Создание форматтера
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# Добавить форматтер в ch
-ch.setFormatter(formatter)
-# Добавлении ротации логов
-file_handler = RotatingFileHandler('log_db.log',
-                                   maxBytes=1024 * 1024,
-                                   backupCount=5)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(formatter)
-# Добавить ch в логгер, создание ротации
-logger.addHandler(ch)
-logger.addHandler(file_handler)
+db_logger = Logger("log_db.log")
+logger = db_logger.get_logger()
 
 
 class AioDataBase:
@@ -51,7 +54,7 @@ class DataBaseTools(AioDataBase):
         super().__init__()
 
     def create_table(self):
-        """Метод создания таблиц."""
+        """Метод создания таблиц(если таковые отсутствуют)."""
         create_table_command = """
         CREATE TABLE IF NOT EXISTS goods (
             id SERIAL PRIMARY KEY,
@@ -64,7 +67,8 @@ class DataBaseTools(AioDataBase):
 
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(100) NOT NULL
+            name VARCHAR(100) NOT NULL,
+            id_user VARCHAR(100) NOT NULL
         );
         """
         try:
@@ -106,18 +110,20 @@ class DataBaseTools(AioDataBase):
         try:
             self.cursor.execute(insert_item_command, list(kwargs.values()))
             self.conn.commit()
-            logger.info("Товар добавлен в таблицу %s", table_name)
+            logger.info("Данные добавлены в таблицу %s", table_name)
         except Exception as ex:
-            logger.info("Ошибка добавления товара! %s", ex)
+            logger.info("Ошибка добавления данных! %s", ex)
 
-    def fetch_all_items(self, cat_item: int):
-        """Метод для получения всех элементов из таблицы.
+    def fetch_all_items_cat(self, table_name: str, cat_item: int):
+        """
+        Метод получения элементов из таблицы по категории.
 
         params:
-            cat_item: категория товаров.
+            table_name: Название таблицы.
+            cat_item: Категория товаров.
         """
-        fetch_all_command = """
-        SELECT * FROM goods WHERE category = %s
+        fetch_all_command = f"""
+        SELECT * FROM {table_name} WHERE category = %s
         """
         try:
             self.cursor.execute(fetch_all_command, (cat_item,))
@@ -128,8 +134,28 @@ class DataBaseTools(AioDataBase):
             logger.info("Ошибка получения данных из таблицы: %s", ex)
             return []
 
+    def fetch_all_items(self, table_name: str, column: str):
+        """
+        Метод для получения всех элементов столбца из таблицы.
+
+        params:
+            table_name: Название таблицы.
+            column: Столбец данные из которого необходимо получить.
+        """
+        fetch_all_command = f""" SELECT {column} FROM {table_name} """
+        try:
+            self.cursor.execute(fetch_all_command)
+            rows = self.cursor.fetchall()
+            logger.info("Данные получены!")
+            result = [int(row[0]) for row in rows]
+            return result
+        except Exception as ex:
+            logger.info("Ошибка получения данных из таблицы: %s", ex)
+            return []
+
     def delete_item(self, id_item: int):
-        """Метод для удаления товара из базы данных.
+        """
+        Метод для удаления товара из базы данных по id.
 
         params:
             id_item: id товара.
@@ -143,4 +169,22 @@ class DataBaseTools(AioDataBase):
             logger.info("Товар с id: %s удалён!", id_item)
         except Exception as ex:
             logger.info("Ошибка удаления данных из таблицы: %s", ex)
+            return []
+
+    async def select_item_id(self, id_item: int):
+        """
+        Метод получения товара из базы данных по id.
+
+        params:
+            id_item: id товара.
+        """
+        select_item_command = """
+        SELECT * FROM goods WHERE id = %s
+        """
+        try:
+            self.cursor.execute(select_item_command, (id_item,))
+            rows = self.cursor.fetchone()
+            return rows
+        except Exception as ex:
+            logger.info("Ошибка получения данных из таблицы: %s", ex)
             return []

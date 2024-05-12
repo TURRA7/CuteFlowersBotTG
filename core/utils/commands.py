@@ -1,14 +1,21 @@
+"""
+Модуль по работе с меню бота.
+
+function:
+    set_commands: Обработчик меню.
+"""
+
 from aiogram import Bot
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
 
-# Хэндлер меню (синяя кнопочка слева - снизу).
 async def set_commands(bot: Bot):
+    """Обработчик меню (синяя кнопочка слева - снизу)."""
     commands: list = [
         BotCommand(
             command='start',
-            description='Начало работы!'
-        )
+            description='Начало работы!',
+        ),
     ]
 
     await bot.set_my_commands(commands, BotCommandScopeDefault())
