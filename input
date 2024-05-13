@@ -3,4 +3,4 @@ ADMIN_ID=
 dbname=
 user=
 password=
-host=
+host=postgres

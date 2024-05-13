@@ -1,0 +1,40 @@
+version: '1'
+
+services:
+  # Описание сеервиса базы данных PostgreSQL
+  postgres:
+    image: postgres:latest
+    networks:
+      - cute_flower
+    volumes:
+      - type: volume
+        source: postgre_data
+        target: /data/db
+    environment:
+      POSTGRES_USER: ... # Вместо точек, написать юзернейм базы данных
+      POSTGRES_PASSWORD: ... # Вместо точек, написать пороль базы данных
+      POSTGRES_DB: ... # Вместо точек, написать называние базы данных
+    restart: always
+    
+  app:
+    # Описание самого приложения
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    restart: always
+    env_file: input
+    networks:
+      - cute_flower
+    volumes:
+      - type: volume
+        source: postgre_data
+        target: /data/db
+
+volumes:
+  postgre_data:
+    name: postgre_data
+
+networks:
+  cute_flower:
