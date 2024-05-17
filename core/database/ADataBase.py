@@ -22,9 +22,9 @@ methods:
     select_item_id: Получение данных из таблицы по id.
 """
 
+import os
 import psycopg2
 
-from settings import settings
 from ..log_mod import Logger
 
 # Создание логгера
@@ -37,10 +37,10 @@ class AioDataBase:
 
     def __init__(self):
         """Метод инициализации переменных."""
-        self.conn = psycopg2.connect(dbname=settings.bots.dbname,
-                                     user=settings.bots.user,
-                                     password=settings.bots.password,
-                                     host=settings.bots.host,
+        self.conn = psycopg2.connect(dbname=os.getenv('DB_NAME'),
+                                     user=os.getenv('USER'),
+                                     password=os.getenv('PASSWORD'),
+                                     host=os.getenv('HOST'),
                                      port=5432,
                                      client_encoding="utf8")
         self.cursor = self.conn.cursor()

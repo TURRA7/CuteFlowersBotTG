@@ -31,6 +31,13 @@ services:
       - type: volume
         source: postgre_data
         target: /data/db
+    environment:
+      TOKEN: ... # Вместо точек, написать токен полученый у @BotFather
+      ADMIN_ID: ... # Вместо точек указать свой id, полученый у @getmyid_bot
+      DB_NAME: ... # Вместо точек, написать называние базы данных
+      USER: ... # Вместо точек, написать юзернейм базы данных
+      PASSWORD: ... # Вместо точек, написать пороль базы данных
+      HOST: postgres # Этот параметр оставить без изменений!
 
 volumes:
   postgre_data:

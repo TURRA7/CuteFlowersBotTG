@@ -26,6 +26,7 @@ start_mailing: Этап: 1(FSM) - ввод текста рассылки.
 send_mailing: Этап: 2(FSM) - отправка.
 """
 
+import os
 import pytz
 from datetime import datetime
 
@@ -38,13 +39,15 @@ from core.keyboards.reply_inline import ReplyKeyBoards, InlineKeyBoards
 from core.utils.commands import set_commands
 from ..database.ADataBase import DataBaseTools
 from ..forms_state.form_bot import Form_add, Form_mailing
-from settings import settings
 from ..log_mod import Logger
 
 
 # Создание логгера
 db_logger = Logger("log_basic.log")
 logger = db_logger.get_logger()
+
+# Получение переменной окружения ADMIN_ID
+admin_id = int(os.getenv('ADMIN_ID'))
 
 
 async def get_start(message: Message):
@@ -63,7 +66,7 @@ async def get_start(message: Message):
     else:
         logger.info("Ошибка добавления пользователя!")
 
-    if message.from_user.id == settings.bots.admin_id:
+    if message.from_user.id == admin_id:
         await message.answer(
             f"<b>{message.from_user.first_name}</b>{messages[1]}",
             reply_markup=ReplyKeyBoards.create_keyboard_reply(emoticons[3],
@@ -80,13 +83,13 @@ async def start_bot(bot: Bot):
     """Оповещения для админа(об старте бота)."""
     logger.info("Бот запущен!")
     await set_commands(bot)
-    await bot.send_message(settings.bots.admin_id, text=messages[16])
+    await bot.send_message(admin_id, text=messages[16])
 
 
 async def stop_bot(bot: Bot):
     """Оповещения для админа(об остановки бота)."""
     logger.info("Бот Остановлен!")
-    await bot.send_message(settings.bots.admin_id, text=messages[17])
+    await bot.send_message(admin_id, text=messages[17])
 
 
 async def contacts_menu(message: Message):
@@ -108,7 +111,7 @@ async def admin_menu(message: Message):
 async def main_menu(message: Message):
     """Вывод стартового меню."""
     await message.answer_sticker(emoticons[2])
-    if message.from_user.id == settings.bots.admin_id:
+    if message.from_user.id == admin_id:
         await message.answer(
             f"<b>{message.from_user.first_name}</b>{messages[1]}",
             reply_markup=ReplyKeyBoards.create_keyboard_reply(emoticons[3],
@@ -198,7 +201,7 @@ async def item_category(message: Message):
         await message.answer(messages[23])
     for item in items:
         text: list = [item[1], item[2], f"{str(item[3])}р."]
-        if not message.from_user.id == settings.bots.admin_id:
+        if not message.from_user.id == admin_id:
             await message.answer_photo(
                 item[5], "\n".join(text),
                 reply_markup=InlineKeyBoards.create_keyboard_inline(
@@ -233,7 +236,7 @@ async def buy_item(callback_query: types.CallbackQuery, bot: Bot):
     text = ["Заявка:", f"Название: {items[1]}", f"Описание: {items[2]}",
             f"Цена: {items[3]}", f"Время и дата: {time}",
             f'https://t.me/{callback_query.from_user.username}']
-    await bot.send_photo(settings.bots.admin_id, photo=items[5],
+    await bot.send_photo(admin_id, photo=items[5],
                          caption="\n".join(text))
     await bot.send_message(callback_query.from_user.id,
                            "Ожидайте, с вами свяжется продавец!")

@@ -7,6 +7,7 @@ function:
     start: Функция инициации и запуска бота.
 """
 
+import os
 import asyncio
 
 from aiogram import Bot, Dispatcher
@@ -24,7 +25,6 @@ from core.handlers.basic import (
 from core.forms_state.form_bot import Form_add, Form_mailing
 from core.content.contents import emoticons
 from core.database.ADataBase import DataBaseTools
-from settings import settings
 from core.log_mod import Logger
 
 # Создание логгера
@@ -34,15 +34,17 @@ logger = db_logger.get_logger()
 
 async def start():
     """Функция инициации и запуска бота."""
-    bot = Bot(token=settings.bots.bot_token, parse_mode='HTML')
+    bot = Bot(token=os.getenv("TOKEN"), parse_mode='HTML')
     # Объект класса Диспечер
     dp = Dispatcher()
+
+    admin_id = int(os.getenv('ADMIN_ID'))
 
     # Регистрация хэндлеров(Общие):
     dp.message.register(get_start, Command("start"))
     dp.message.register(contacts_menu, F.text == emoticons[5])
     dp.message.register(admin_menu, F.text == emoticons[6],
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(main_menu, F.text == emoticons[10])
     dp.callback_query.register(delete_item,
                                lambda c: c.data.startswith('delete_item:'))
@@ -56,30 +58,27 @@ async def start():
 
     # Регистрация хэндлеров(FSM - добавление товаров.):
     dp.message.register(add_item, F.text == emoticons[7],
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(add_item_name, Form_add.name,
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(add_item_description, Form_add.description,
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(add_item_price, Form_add.price,
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(add_item_category, Form_add.category,
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(add_item_photo, Form_add.photo,
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
 
     # Регистрация хэндлеров(FSM - рассылка.):
     dp.message.register(start_mailing, F.text == emoticons[15],
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
     dp.message.register(send_mailing, Form_mailing.text,
-                        F.from_user.id == settings.bots.admin_id)
+                        F.from_user.id == admin_id)
 
     # Регистрация хэндлеров(Старт/остановка бота):
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
-
-    tools = DataBaseTools()
-    tools.create_table()
 
     try:
         # Создание таблиц в базу данных.
