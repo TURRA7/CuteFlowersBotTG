@@ -2,46 +2,9 @@
 
 Это приложение, представляет собой бот-витрину на тематику бисерых украшений. Приложение построено на языке **PYTHON** с использованием фреймворка **Aiogram3**.
 
-## Структура проекта
-
-```
-.
-└── CuteFlowers
-    ├── core
-    |   ├── __init__.py
-    |   ├── content
-    |   |       ├── __init__.py
-    |   |       └── contents.py
-    |   ├── database
-    |   |       ├── __init__.py
-    |   |       └── ADataBase.py
-    |   ├── forms_state
-    |   |       ├── __init__.py
-    |   |       └── form_bot.py
-    |   ├── handlers
-    |   |       ├── __init__.py
-    |   |       └── basic.py
-    |   ├── keyboards
-    |   |       ├── __init__.py
-    |   |       └── reply_inline.py
-    |   ├── utils
-    |   |       ├── __init__.py
-    |   |       └── commands.py
-    |   ├── __init__.py
-    |   ├── log_mod.py
-    |   └── setup.cfg
-    ├── app.py
-    ├── docker-compose.yaml
-    ├── Dockerfile
-    ├── input
-    ├── README.md
-    ├── requirements.txt
-    └── settings.py
-```
-
 ___
 
-### Краткое описание структуры
+### Краткое описание структуры проекта
 
 * **core**: Содержит пакеты для работы с ботом.
 * **app.py**: Исполнительный файл проекта.
